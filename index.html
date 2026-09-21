@@ -1,0 +1,694 @@
+<title>Démo SIGNÉ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --stage:#16181C; --stage2:#1F2227; --stage3:#272B32; --line:#31363E;
+  --sink:#EDEFF2; --smuted:#98A0AB; --sdim:#6B7280;
+  --paper:#F4F1EC; --card:#FFFFFF; --ink:#181513; --ink2:#6E665C; --rule:#E3DED5; --rule2:#EDE8DF;
+  --brick:#B4502F; --brickd:#8F3D22; --bricks:#F6E8E1;
+  --green:#2F5D45; --greens:#E6EFE9; --greent:#BBD4C6;
+  --amber:#C08A1E; --ambers:#F8EFDC; --ambeti:#7E560D;
+  --slate:#8A8378; --red:#A8331C;
+  --disp:'Bricolage Grotesque','Helvetica Neue',Helvetica,sans-serif;
+  --body:'Instrument Sans','Helvetica Neue',Helvetica,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--stage);color:var(--sink);font-family:var(--body);-webkit-font-smoothing:antialiased}
+button,input{font-family:inherit}
+button{cursor:pointer}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--brick);outline-offset:2px}
+.app{height:100%;display:flex;flex-direction:column;overflow:hidden}
+
+.rail{flex-shrink:0;background:var(--stage2);border-bottom:1px solid var(--line);padding:10px 18px;padding-top:calc(10px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:9px}
+.brand b{font-family:var(--disp);font-weight:800;font-size:16px;letter-spacing:.11em}
+.brand span{font-size:11px;color:var(--sdim);letter-spacing:.05em;text-transform:uppercase}
+.steps{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:500;color:var(--smuted);background:transparent;border:1px solid transparent;white-space:nowrap}
+.step b{width:17px;height:17px;border-radius:50%;background:var(--stage3);color:var(--smuted);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.step.on{background:var(--stage3);border-color:var(--line);color:var(--sink)}
+.step.on b{background:var(--brick);color:#fff}
+.step.done b{background:var(--green);color:#fff}
+.railR{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.clock{display:flex;flex-direction:column;gap:1px;padding-right:4px}
+.clock i{font-style:normal;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--sdim)}
+.clock b{font-family:var(--disp);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.btn{height:38px;padding:0 15px;border-radius:11px;border:1px solid var(--line);background:var(--stage3);color:var(--sink);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{background:#31363E}
+.btn.primary{background:var(--brick);border-color:var(--brick);color:#fff}
+.btn.primary:hover{background:var(--brickd);border-color:var(--brickd)}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.chipai{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 13px;border-radius:11px;border:1px solid var(--line);background:transparent;color:var(--smuted);font-size:12.5px;font-weight:600}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--sdim);flex-shrink:0}
+.dot.ok{background:#4FAE7E}.dot.warn{background:var(--amber)}
+
+.panel{flex-shrink:0;background:#12141A;border-bottom:1px solid var(--line);padding:16px 18px;font-size:13px;line-height:1.6;color:var(--smuted)}
+.panel ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px}
+.panel b{color:var(--sink)}
+.fields{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:150px;flex-grow:1}
+.fld label{font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--sdim)}
+.fld input{height:38px;border-radius:10px;border:1px solid var(--line);background:var(--stage);color:var(--sink);padding:0 11px;font-size:13.5px}
+
+.stage{flex-grow:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:34px;padding:18px;overflow:auto}
+.dev{display:flex;flex-direction:column;gap:10px;width:390px;max-width:100%;flex-shrink:0}
+.devlab{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--sdim)}
+.devlab s{text-decoration:none;height:1px;background:var(--line);flex-grow:1}
+.phone{height:min(720px,calc(100vh - 226px));min-height:430px;background:#000;border-radius:38px;padding:9px;box-shadow:0 22px 60px rgba(0,0,0,.55),0 0 0 1px #34383F}
+.screen{height:100%;border-radius:30px;overflow:hidden;background:var(--paper);color:var(--ink);display:flex;flex-direction:column}
+.scroll{flex-grow:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+
+.ph{padding:16px 18px}
+.phhead{padding:16px 18px 10px;display:flex;align-items:center;gap:11px;flex-shrink:0}
+.phhead .nm{font-family:var(--disp);font-weight:800;font-size:15px;letter-spacing:.09em}
+.phhead .sb{font-size:11.5px;color:var(--ink2);margin-top:1px}
+.av{width:36px;height:36px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:12.5px;flex-shrink:0}
+h2.t{font-family:var(--disp);font-weight:700;font-size:19px;margin:0 0 4px;line-height:1.25;text-wrap:balance}
+p.s{margin:0;font-size:13px;line-height:1.5;color:var(--ink2)}
+.lab{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.cardw{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:15px}
+textarea{width:100%;min-height:118px;resize:none;border:1px solid var(--rule);border-radius:14px;background:var(--card);color:var(--ink);font-family:inherit;font-size:14px;line-height:1.6;padding:13px}
+textarea.live{border-color:var(--brick);background:#fff}
+.pbtn{width:100%;height:52px;border-radius:14px;border:0;background:var(--brick);color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:9px}
+.pbtn:hover{background:var(--brickd)}
+.pbtn.dark{background:var(--ink)}.pbtn.dark:hover{background:#000}
+.pbtn.green{background:var(--green)}.pbtn.green:hover{background:#234433}
+.pbtn.rec{background:var(--red)}.pbtn.rec:hover{background:#8C2917}
+.pbtn.out{background:var(--card);color:var(--ink);border:1px solid var(--rule)}
+.pbtn.out:hover{background:var(--paper)}
+.pbtn:disabled{opacity:.5;cursor:not-allowed}
+.pbtn.sm{height:44px;font-size:14px}
+.stack{display:flex;flex-direction:column;gap:9px}
+.row{display:flex;gap:10px;align-items:baseline}
+.row .g{flex-grow:1;min-width:0}
+.num{font-family:var(--disp);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;border-radius:999px;padding:3px 9px}
+.b-amber{background:var(--ambers);color:var(--ambeti)}
+.b-green{background:var(--green);color:#fff}
+.b-brick{background:var(--bricks);color:var(--brickd)}
+.b-grey{background:var(--rule2);color:var(--ink2)}
+.b-red{background:#F7E3DE;color:var(--red)}
+.ask{background:var(--ambers);border:1px solid #E8D6AF;border-radius:14px;padding:13px;font-size:13px;line-height:1.5;color:#4A3608;display:flex;gap:9px}
+.note{font-size:12px;line-height:1.5;color:var(--ink2)}
+.exch{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.ex{height:30px;padding:0 11px;border-radius:999px;border:1px solid var(--rule);background:var(--card);color:var(--ink2);font-size:11.5px;font-weight:600}
+.ex:hover{border-color:var(--slate);color:var(--ink)}
+.recbar{display:flex;align-items:center;gap:9px;margin:9px 2px 0;font-size:12px;font-weight:600;color:var(--red)}
+.blink{width:9px;height:9px;border-radius:50%;background:var(--red);animation:bk 1s steps(2,end) infinite}
+@keyframes bk{50%{opacity:.25}}
+.tl{display:flex;gap:11px}
+.tlc{width:11px;display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.tld{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.tll{width:2px;flex-grow:1;background:var(--rule);margin-top:3px}
+.tlb{flex-grow:1;min-width:0;padding-bottom:13px}
+.tlt{font-size:11px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.tlh{font-size:13.5px;font-weight:600;margin-top:1px}
+.tls{font-size:12px;color:var(--ink2);margin-top:1px}
+.msg{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:13px;color:var(--ink)}
+.msg:hover{border-color:var(--slate)}
+.msg.unread{border-color:var(--brick);background:#fff}
+.mi{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;height:100%;color:var(--ink2);text-align:center;padding:30px}
+.fade{animation:fade .45s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pulse{animation:pl 1.4s ease-in-out infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.45}}
+
+.foot{flex-shrink:0;background:var(--stage2);border-top:1px solid var(--line);padding:11px 18px;padding-bottom:calc(11px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.kpi{display:flex;flex-direction:column;gap:2px}
+.kpi i{font-style:normal;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--sdim)}
+.kpi b{font-family:var(--disp);font-weight:700;font-size:19px;font-variant-numeric:tabular-nums}
+.kpi.hero b{color:#7CC8A0}
+.say{margin-left:auto;max-width:520px;font-size:12.5px;line-height:1.5;color:var(--smuted);text-align:right}
+.say b{color:var(--sink);font-weight:600}
+.hide{display:none!important}
+@media (max-width:900px){
+  .stage{flex-direction:column;align-items:center;gap:22px;justify-content:flex-start}
+  .phone{height:720px}
+  .say{margin-left:0;text-align:left;max-width:none}
+  .railR{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app">
+
+  <div class="rail">
+    <div class="brand"><b>SIGNÉ</b><span>démo</span></div>
+    <div class="steps" id="steps"></div>
+    <div class="railR">
+      <button class="chipai" id="aiChip" type="button"><span class="dot" id="aiDot"></span><span id="aiTxt">IA — vérifier</span></button>
+      <div class="clock"><i>Date simulée</i><b id="clock">—</b></div>
+      <button class="btn primary" id="fwd" type="button" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 5l9 7-9 7V5zm10 0l8 7-8 7V5z"/></svg>
+        <span id="fwdTxt">Avancer le temps</span>
+      </button>
+      <button class="btn ghost" id="profBtn" type="button">Profil</button>
+      <button class="btn ghost" id="memoBtn" type="button">Mémo</button>
+      <button class="btn ghost" id="reset" type="button">Réinitialiser</button>
+    </div>
+  </div>
+
+  <div class="panel hide" id="prof">
+    <b>Votre identité dans la démo.</b> Elle apparaît sur le devis et signe les messages. Mettez la vôtre — ou celle de votre prospect, l'effet est redoutable.
+    <div class="fields">
+      <div class="fld"><label for="f1">Prénom</label><input id="f1" data-p="prenom" autocomplete="off"></div>
+      <div class="fld"><label for="f2">Nom</label><input id="f2" data-p="nom" autocomplete="off"></div>
+      <div class="fld"><label for="f3">Entreprise</label><input id="f3" data-p="societe" autocomplete="off"></div>
+      <div class="fld"><label for="f4">Ville</label><input id="f4" data-p="ville" autocomplete="off"></div>
+      <div class="fld"><label for="f5">Téléphone</label><input id="f5" data-p="tel" autocomplete="off"></div>
+      <div class="fld" style="min-width:250px"><label for="fkey">Clé API Anthropic</label><input id="fkey" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false"></div>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:#6B7280">La clé reste dans ce navigateur, sur cet ordinateur. Elle n'est ni envoyée sur GitHub, ni visible par qui ouvre la page.</div>
+  </div>
+
+  <div class="panel hide" id="memo">
+    <b>Déroulé conseillé — 4 minutes.</b> Avant l'appel : clique sur « IA — vérifier » pour accorder l'autorisation, et teste le micro une fois.
+    <ol>
+      <li>Demande à ton prospect de te décrire un chantier de sa semaine. Appuie sur <b>Parler</b> et redis-le au micro : nom du client, ce qu'il y a à faire, les quantités, les jours de main-d'œuvre.</li>
+      <li><b>Générer le devis</b>, puis <b>Envoyer</b>. Le devis arrive dans le téléphone de droite.</li>
+      <li><b>Avancer le temps</b> en haut à droite : la relance part toute seule. Reclique pour la deuxième.</li>
+      <li>Téléphone de droite : ouvre le message, puis <b>J'accepte ce devis</b>. Les relances s'arrêtent, le chiffre en bas à gauche monte.</li>
+    </ol>
+    Les trois chiffres du bas partent d'un historique d'exemple, pour que le tableau de bord ne soit pas vide. Aucun message n'est réellement envoyé.
+  </div>
+
+  <div class="stage">
+    <div class="dev">
+      <div class="devlab"><span>Côté artisan</span><s></s></div>
+      <div class="phone"><div class="screen" id="pro"></div></div>
+    </div>
+    <div class="dev">
+      <div class="devlab"><span>Côté client</span><s></s></div>
+      <div class="phone"><div class="screen" id="cli"></div></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="kpi hero"><i>CA récupéré par les relances</i><b id="k1">—</b></div>
+    <div class="kpi"><i>En attente de réponse</i><b id="k2">—</b></div>
+    <div class="kpi"><i>Taux de signature</i><b id="k3">—</b></div>
+    <div class="say" id="say"></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------- profil (modifiable, mémorisé) ---------------- */
+const DEF={prenom:'Karim',nom:'Belaïd',societe:'Belaïd Rénovation',ville:'Tours',tel:'06 12 44 87 30',
+           siret:'812 447 920 00018',deca:'AXA n° 4412 890 33'};
+let P=Object.assign({},DEF);
+try{const r=localStorage.getItem('signe.profil');if(r)P=Object.assign({},DEF,JSON.parse(r));}catch(e){}
+const saveP=()=>{try{localStorage.setItem('signe.profil',JSON.stringify(P));}catch(e){}};
+const ini=()=>((P.prenom[0]||'')+(P.nom[0]||'')).toUpperCase()||'AB';
+
+const EXEMPLES=[
+ {n:'Plomberie',t:"Alors c'est pour Madame Ferrand, 14 rue des Lilas à Tours. Il faut remplacer la chaudière gaz par une pompe à chaleur air-eau de 8 kilowatts, avec la dépose de l'ancienne et l'évacuation. Plus deux radiateurs à changer dans les chambres. Compte trois jours de main-d'œuvre."},
+ {n:'Électricité',t:"C'est pour Monsieur Vasseur, 8 allée des Peupliers à Nantes. Il faut refaire le tableau électrique aux normes, treize modules, reprendre les douze circuits et le repérage. Plus la mise à la terre et la liaison équipotentielle dans la salle de bain. Deux jours de boulot."},
+ {n:'Peinture',t:"Pour Madame Ollivier, 22 rue Saint-Laud à Angers. Peinture complète d'un appartement de 65 mètres carrés : murs et plafonds, deux couches, avec le rebouchage et le ponçage avant. Plus les boiseries, six portes. Compte cinq jours à deux."}
+];
+const EXQ={metier:'Plomberie-chauffage',
+  client:{nom:'Mme Claire Ferrand',adresse:'14 rue des Lilas, 37000 Tours'},
+  objet:'Remplacement chaudière gaz par pompe à chaleur air-eau',tva:5.5,
+  question:"Quelle marque de pompe à chaleur ? L'écart est d'environ 600 € sur le total.",
+  lignes:[{designation:'Pompe à chaleur air-eau 8 kW',detail:'Fourniture et pose',quantite:1,unite:'u',pu:7200},
+          {designation:'Dépose chaudière gaz et évacuation',detail:'',quantite:1,unite:'forfait',pu:480},
+          {designation:'Radiateur basse température',detail:'Chambres',quantite:2,unite:'u',pu:265},
+          {designation:'Main-d’œuvre',detail:'',quantite:3,unite:'j',pu:420}]};
+const REL=[{label:'Relance 1 · email'},{label:'Relance 2 · email et SMS'},{label:'Relance 3 · SMS'},{label:'Relance 4 · dernière'}];
+
+/* ---------------- utilitaires ---------------- */
+const JR=['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'];
+const MO=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const ML=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const p2=n=>String(n).padStart(2,'0');
+const fmtD=d=>`${JR[d.getDay()]} ${d.getDate()} ${MO[d.getMonth()]}`;
+const fmtDT=d=>`${fmtD(d)} · ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+const fmtL=d=>`${d.getDate()} ${ML[d.getMonth()]} ${d.getFullYear()}`;
+const eur=n=>n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+const eur0=n=>Math.round(n).toLocaleString('fr-FR')+' €';
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function workday(d){const x=new Date(d);while(x.getDay()===0||x.getDay()===6)x.setDate(x.getDate()+1);return x;}
+function addD(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+const ICO={
+ mic:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><path d="M12 18v4"/></svg>',
+ stop:'<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>',
+ mail:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4.5" width="20" height="15" rx="2.5"/><path d="m3 7 9 5.5L21 7"/></svg>',
+ sms:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 14.5a2 2 0 0 1-2 2H8l-4 3.5V5.5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>',
+ chk:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+ back:'<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>',
+ q:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7E560D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.5h.01"/></svg>',
+ inbox:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2 3h6l2-3h4"/><path d="M5.5 5h13l2.5 7v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5z"/></svg>'
+};
+
+/* ---------------- état ---------------- */
+const BASE={recup:18400,attente:21200,taux:42};
+let S,uid=0,busy=false;
+function start(){
+  stopRec(true);
+  const now=new Date(); now.setHours(9,12,0,0);
+  S={step:'brief',brief:'',rec:false,recT:0,micMsg:null,gen:false,genErr:null,
+     now,quote:null,num:'2026-0'+(140+Math.floor(Math.random()*9)),
+     sentAt:null,plan:[],relances:0,status:'brouillon',closed:false,acceptedAt:null,
+     events:[],inbox:[],cview:'inbox',open:null,seenOpen:false,seenDevis:false,
+     kpi:Object.assign({},BASE),
+     say:"Appuyez sur Parler et décrivez un chantier à voix haute, comme au téléphone. N'importe quel métier."};
+  render();
+}
+function totals(q){const ht=q.lignes.reduce((a,l)=>a+l.quantite*l.pu,0);const tv=ht*q.tva/100;return{ht,tv,ttc:ht+tv};}
+const validite=()=>S.sentAt?addD(S.sentAt,30):addD(S.now,30);
+
+/* ---------------- dictée réelle ---------------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,recTimer=null,finalTxt='';
+const MICERR={'not-allowed':"Le micro est refusé. Autorisez-le dans la barre d'adresse du navigateur, puis réessayez.",
+ 'service-not-allowed':"Le micro est bloqué dans ce cadre. Ouvrez la démo dans un onglet à part, ou tapez le texte ci-dessous.",
+ 'no-speech':"Je n'ai rien entendu. Rapprochez-vous du micro et réessayez.",
+ 'audio-capture':"Aucun micro détecté sur cet ordinateur.",
+ 'network':"La dictée a perdu la connexion. Réessayez, ou tapez le texte."};
+function startRec(){
+  if(S.rec){stopRec();return;}
+  if(!SR){S.micMsg="Ce navigateur ne gère pas la dictée. Utilisez Chrome ou Edge — ou tapez le texte ci-dessous.";render();return;}
+  try{rec=new SR();}catch(e){S.micMsg="La dictée n'a pas pu démarrer ici. Tapez le texte ci-dessous.";render();return;}
+  rec.lang='fr-FR';rec.continuous=true;rec.interimResults=true;
+  finalTxt=S.brief?S.brief.replace(/\s+$/,'')+' ':'';
+  rec.onresult=e=>{
+    let itr='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const r=e.results[i];
+      if(r.isFinal)finalTxt+=r[0].transcript+' '; else itr+=r[0].transcript;
+    }
+    S.brief=(finalTxt+itr).replace(/\s+/g,' ').replace(/^\s/,'');
+    const ta=document.getElementById('brief');
+    if(ta){ta.value=S.brief;ta.scrollTop=ta.scrollHeight;}
+  };
+  rec.onerror=e=>{const m=MICERR[e.error]||"La dictée s'est interrompue. Vous pouvez taper le texte.";stopRec(true);S.micMsg=m;render();};
+  rec.onend=()=>{if(S.rec){S.rec=false;clearInterval(recTimer);render();}};
+  try{rec.start();}catch(e){S.micMsg="La dictée n'a pas pu démarrer. Réessayez.";render();return;}
+  S.rec=true;S.recT=Date.now();S.micMsg=null;
+  clearInterval(recTimer);
+  recTimer=setInterval(()=>{const t=document.getElementById('rectime');
+    if(t)t.textContent=p2(Math.floor((Date.now()-S.recT)/60000))+':'+p2(Math.floor((Date.now()-S.recT)/1000)%60);},250);
+  S.say="Parlez normalement. Le texte s'écrit en direct — c'est la vraie dictée, pas une animation.";
+  render();
+}
+function stopRec(silent){
+  clearInterval(recTimer);
+  if(rec){try{rec.onend=null;rec.onerror=null;rec.stop();}catch(e){} rec=null;}
+  if(S&&S.rec){S.rec=false;if(!silent){S.say="Voilà ce qui a été entendu. Corrigez si besoin, puis générez le devis.";render();}}
+}
+
+/* ---------------- IA : deux chemins ---------------- */
+const HOSTED=!!(window.claude&&window.claude.use);
+const useSample=HOSTED?window.claude.use('sample').catch(()=>null):Promise.resolve(null);
+const MODEL='claude-opus-5';
+let KEY=''; try{KEY=localStorage.getItem('signe.key')||'';}catch(e){}
+const saveK=()=>{try{KEY?localStorage.setItem('signe.key',KEY):localStorage.removeItem('signe.key');}catch(e){}};
+const NOKEY="Ajoutez votre clé API Anthropic dans « Profil », en haut à droite. Elle reste sur cet ordinateur.";
+
+function setAI(k,t){const d=document.getElementById('aiDot'),x=document.getElementById('aiTxt');
+  d.className='dot'+(k==='ok'?' ok':k==='off'?' warn':'');x.textContent=t;}
+function idleAI(){setAI(HOSTED?'unknown':(KEY?'unknown':'off'),HOSTED?'IA — vérifier':(KEY?'IA — vérifier':'Clé API manquante'));}
+async function probeAI(){
+  if(!HOSTED&&!KEY){document.getElementById('prof').classList.remove('hide');
+    const f=document.getElementById('fkey');if(f)f.focus();
+    S.genErr=NOKEY;render();return;}
+  setAI('unknown','Vérification…');
+  try{
+    if(HOSTED){const s=await useSample;if(!s)throw{code:'not_declared'};await s('Réponds uniquement par : OK',{modelTier:'quick'});}
+    else await callAPI('Réponds uniquement par : OK',24);
+    setAI('ok','IA prête');S.genErr=null;render();
+  }catch(e){const c=e&&e.code;
+    setAI('off',c==='bad_key'?'Clé refusée':c==='not_granted'?'IA refusée':'IA indisponible');
+    S.genErr=errMsg(e);render();}
+}
+function errMsg(e){
+  const c=e&&e.code;
+  if(c==='no_key')return NOKEY;
+  if(c==='bad_key')return "Cette clé API est refusée. Vérifiez-la dans « Profil ».";
+  if(c==='no_credit')return "Le compte Anthropic n'a plus de crédit. Rechargez-le sur console.anthropic.com.";
+  if(c==='rate_limited')return "Trop de demandes d'un coup. Attendez quelques secondes et réessayez.";
+  if(c==='invalid_json')return "La réponse n'était pas exploitable. Réessayez, ou reformulez la dictée.";
+  if(c==='not_granted'||c==='not_declared'||c==='sampling_disabled')return "L'accès à Claude n'est pas accordé. Cliquez sur « IA — vérifier » en haut à droite.";
+  if(c==='network')return "Impossible de joindre l'API. Vérifiez votre connexion.";
+  return "La génération n'a pas abouti."+(e&&e.msg?' ('+String(e.msg).slice(0,110)+')':'');
+}
+async function callAPI(prompt,maxTok){
+  if(!KEY)throw{code:'no_key'};
+  let r;
+  try{
+    r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'content-type':'application/json','x-api-key':KEY,
+               'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MODEL,max_tokens:maxTok||16000,
+        output_config:{effort:'low'},messages:[{role:'user',content:prompt}]})});
+  }catch(e){throw{code:'network'};}
+  const j=await r.json().catch(()=>null);
+  if(!r.ok){
+    const t=j&&j.error&&j.error.type, m=(j&&j.error&&j.error.message)||'';
+    throw{code: t==='authentication_error'||t==='permission_error' ? 'bad_key'
+        : t==='rate_limit_error' ? 'rate_limited'
+        : /credit balance/i.test(m) ? 'no_credit' : 'upstream_error', msg:m};
+  }
+  return (j.content||[]).filter(x=>x.type==='text').map(x=>x.text).join('\n');
+}
+function looseJSON(t){
+  try{return JSON.parse(t);}catch(e){}
+  const f=t.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if(f){try{return JSON.parse(f[1]);}catch(e){}}
+  const i=t.indexOf('{'),k=t.lastIndexOf('}');
+  if(i>=0&&k>i){try{return JSON.parse(t.slice(i,k+1));}catch(e){}}
+  throw{code:'invalid_json'};
+}
+function normalize(d){
+  const raw=Array.isArray(d&&d.lignes)?d.lignes.slice(0,8):[];
+  const lignes=raw.map(l=>({
+    designation:String((l&&l.designation)||'Prestation').slice(0,95),
+    detail:l&&l.detail?String(l.detail).slice(0,70):'',
+    quantite:Math.max(0.5,Number(l&&l.quantite)||1),
+    unite:String((l&&l.unite)||'u').slice(0,10),
+    pu:Number(l&&l.pu)||0})).filter(l=>l.pu>0);
+  if(!lignes.length)throw{code:'invalid_json'};
+  const tva=Number(d&&d.tva);
+  return{metier:String((d&&d.metier)||'').slice(0,28),
+    client:{nom:String((d&&d.client&&d.client.nom)||'').slice(0,60)||'Le client',
+            adresse:String((d&&d.client&&d.client.adresse)||'').slice(0,90)||P.ville},
+    objet:String((d&&d.objet)||'Travaux').slice(0,95),
+    tva:[5.5,10,20].indexOf(tva)>=0?tva:10,lignes,
+    question:d&&d.question?String(d.question).slice(0,170):null};
+}
+function promptFor(brief){
+return `Tu assistes un artisan français qui vient de dicter un devis à voix haute. Déduis son métier et son secteur de ce qu'il dit — cela peut être n'importe quel corps de métier du bâtiment ou de l'artisanat.
+
+Artisan : ${P.prenom} ${P.nom}, ${P.societe}, ${P.ville}.
+
+Sa dictée, telle qu'elle a été transcrite (elle peut contenir des approximations de transcription, corrige-les au bon sens) :
+"${brief.slice(0,2000)}"
+
+Réponds uniquement avec un objet JSON de cette forme exacte, sans aucun autre texte :
+{"metier":"Plomberie-chauffage","client":{"nom":"Mme Claire Ferrand","adresse":"14 rue des Lilas, 37000 Tours"},"objet":"Remplacement de la chaudière par une pompe à chaleur","tva":5.5,"lignes":[{"designation":"Pompe à chaleur air-eau 8 kW","detail":"Fourniture et pose","quantite":1,"unite":"u","pu":7200}],"question":"Quelle marque de pompe à chaleur ?"}
+
+Règles :
+- "metier" : deux mots maximum.
+- 3 à 7 lignes. Prix unitaires en euros HT, réalistes pour le marché français actuel et cohérents avec le métier déduit.
+- Ajoute une ligne de main-d'œuvre si le chantier en demande et qu'elle n'est pas déjà comprise dans les fournitures.
+- "unite" vaut u, j, h, forfait, m2 ou ml.
+- "tva" vaut 5.5 (rénovation énergétique), 10 (rénovation d'un logement de plus de deux ans) ou 20 (neuf, ou hors logement).
+- N'invente jamais une information qui change nettement le prix : mets-la dans "question", une seule phrase courte et concrète. Sinon "question": null.
+- Si le nom du client ou l'adresse ne sont pas dits, laisse la chaîne vide.`;
+}
+async function askIA(brief){
+  const prompt=promptFor(brief);
+  if(HOSTED){const s=await useSample;if(!s)throw{code:'not_declared'};return normalize(await s.json(prompt,{modelTier:'quick'}));}
+  return normalize(looseJSON(await callAPI(prompt)));
+}
+
+/* ---------------- messages ---------------- */
+function nomCourt(){const n=S.quote.client.nom.trim().split(/\s+/);return n[n.length-1];}
+function civ(){const n=S.quote.client.nom.trim();
+  if(/^mme/i.test(n))return'Madame '+nomCourt();
+  if(/^(m\.|mr|monsieur)/i.test(n))return'Monsieur '+nomCourt();
+  return n;}
+function objetCourt(){return S.quote.objet.charAt(0).toLowerCase()+S.quote.objet.slice(1);}
+function relanceMsgs(i){
+  const t=totals(S.quote),v=fmtL(validite()),out=[];
+  if(i===0)out.push({type:'email',devis:true,subject:`Votre devis — toujours d'actualité ?`,
+    body:`Bonjour ${civ()},\n\nJe reviens vers vous au sujet du devis pour ${objetCourt()}, que je vous ai envoyé ${fmtD(S.sentAt)}.\n\nSi vous avez des questions sur le matériel ou sur l'organisation du chantier, dites-le moi. Je peux aussi repasser sur place, ça n'engage à rien.\n\nLe devis reste valable jusqu'au ${v}.\n\nBonne journée,\n${P.prenom} ${P.nom}\n${P.societe} · ${P.tel}`});
+  if(i===1){
+    out.push({type:'email',devis:true,subject:`Devis n° ${S.num} — je reste disponible`,
+      body:`Bonjour ${civ()},\n\nJe n'ai pas eu de retour de votre côté. Je me permets un dernier mot par écrit.\n\nSi c'est le budget ou le calendrier qui coincent, dites-le moi franchement : on peut souvent s'arranger, par exemple en décalant une partie des travaux.\n\nLe devis court jusqu'au ${v}.\n\nÀ bientôt,\n${P.prenom}`});
+    out.push({type:'sms',devis:true,subject:P.societe,
+      body:`${P.societe} : bonjour, avez-vous pu regarder le devis de ${eur0(t.ttc)} ? Un mot suffit si vous avez une question. ${P.prenom}`});
+  }
+  if(i===2)out.push({type:'sms',devis:true,subject:P.societe,
+    body:`Bonjour, ${P.prenom} de ${P.societe}. Le devis n° ${S.num} expire le ${v}. Répondez-moi même pour me dire non, ça me permet de fermer le dossier. Merci !`});
+  if(i===3)out.push({type:'email',devis:false,subject:`Devis n° ${S.num} — je clôture le dossier`,
+    body:`Bonjour ${civ()},\n\nSans nouvelles de votre part, je clôture le dossier pour ne pas vous importuner davantage.\n\nSi le projet revient sur la table, écrivez-moi : je referai le point sur les prix, ils auront peut-être bougé d'ici là.\n\nBien à vous,\n${P.prenom} ${P.nom}\n${P.societe}`});
+  return out;
+}
+function envoiMsgs(){const t=totals(S.quote);return[
+  {type:'email',devis:true,subject:`Votre devis — ${S.quote.objet}`,
+   body:`Bonjour ${civ()},\n\nComme convenu, voici le devis pour ${objetCourt()}, d'un montant de ${eur(t.ttc)} TTC.\n\nVous pouvez le consulter et l'accepter directement en ligne, il n'y a pas de compte à créer. Je reste joignable au ${P.tel} si vous avez la moindre question.\n\nBien à vous,\n${P.prenom} ${P.nom}\n${P.societe}`},
+  {type:'sms',devis:true,subject:P.societe,
+   body:`${P.societe} : votre devis de ${eur0(t.ttc)} vient de partir par mail. Vous pouvez l'accepter en ligne. ${P.prenom}`}];}
+
+/* ---------------- actions ---------------- */
+function push(kind,h,s,at){S.events.push({at:at||new Date(S.now),kind,h,s:s||''});}
+function deliver(l,at){l.forEach(m=>S.inbox.unshift(Object.assign({},m,{at:new Date(at),read:false,id:++uid})));}
+function send(){
+  S.sentAt=new Date(S.now);S.status='envoye';S.step='suivi';
+  let prev=null;
+  S.plan=[2,5,9,14].map(o=>{let d=workday(new Date(addD(S.sentAt,o).setHours(9,0,0,0)));
+    if(prev&&d<=prev)d=workday(addD(prev,1));prev=d;return d;});
+  push('envoi','Devis envoyé','Email et SMS');deliver(envoiMsgs(),S.now);
+  S.kpi.attente+=totals(S.quote).ttc;
+  S.say="Le devis est parti. Les quatre relances sont déjà programmées — l'artisan n'a plus rien à faire.";
+  render();
+}
+function advance(){
+  if(!S.sentAt||S.status==='accepte'||S.status==='refuse')return;
+  const nx=S.plan[S.relances];S.now=nx?new Date(nx):addD(S.now,2);
+  let fired=0;
+  while(S.relances<S.plan.length&&S.plan[S.relances]<=S.now){
+    const i=S.relances,d=new Date(S.plan[i]);
+    deliver(relanceMsgs(i),d);push('relance',REL[i].label,'',d);S.relances++;fired++;}
+  if(fired){S.status='relance';
+    S.say=`Nous sommes le ${fmtD(S.now)}. La relance ${S.relances} vient de partir toute seule. Le client n'a rien demandé, l'artisan n'a rien fait.`;}
+  else{S.closed=true;
+    S.say="Quatre relances, pas de réponse : le dossier se clôture tout seul et l'artisan reçoit une tâche « appeler ». On n'insiste pas au-delà.";}
+  render();
+}
+function openMsg(id){
+  const m=S.inbox.find(x=>x.id===id);if(!m)return;
+  const was=!m.read;m.read=true;S.open=id;S.cview='message';
+  if(was&&!S.seenOpen&&S.status!=='accepte'){S.seenOpen=true;push('vu','Ouvert par le client','');
+    S.say="Regardez à gauche : l'artisan voit en direct que son client a ouvert le message.";}
+  render();
+}
+function viewQuote(){S.cview='devis';
+  if(!S.seenDevis&&S.status!=='accepte'){S.seenDevis=true;push('vu','Devis consulté','Page publique, sans compte à créer');}
+  S.say="Voilà la page que voit le client. Trois boutons, pas de compte, pas de PDF à imprimer.";render();}
+function accept(){
+  const t=totals(S.quote);
+  S.status='accepte';S.cview='accepte';S.acceptedAt=new Date(S.now);
+  push('accept','Accepté et signé en ligne',`${S.quote.client.nom} · horodaté et archivé`);
+  S.kpi.attente=Math.max(0,S.kpi.attente-t.ttc);
+  if(S.relances>0){S.kpi.recup+=t.ttc;S.kpi.taux=Math.min(99,S.kpi.taux+4);}else S.kpi.taux=Math.min(99,S.kpi.taux+2);
+  S.say=S.relances>0
+    ?`Signé après ${S.relances} relance${S.relances>1?'s':''} automatique${S.relances>1?'s':''}. Les ${4-S.relances} suivantes sont annulées. En bas à gauche : ${eur0(t.ttc)} qui seraient partis à la poubelle.`
+    :"Accepté. Les relances programmées sont annulées automatiquement.";
+  render();
+}
+function refuse(){
+  S.status='refuse';S.cview='refuse';push('refus','Refusé par le client','Les relances sont annulées');
+  S.kpi.attente=Math.max(0,S.kpi.attente-totals(S.quote).ttc);
+  S.say="Même un refus est une bonne nouvelle : l'artisan arrête d'espérer, et les relances s'arrêtent.";render();
+}
+async function generate(){
+  if(busy||!S.brief.trim())return;
+  stopRec(true);busy=true;S.gen=true;S.genErr=null;render();
+  try{
+    S.quote=await askIA(S.brief);S.step='devis';S.genMode='ia';
+    S.say="Le devis sort de ce qui a été dit : lignes, quantités, prix, TVA. L'artisan relit et corrige s'il veut.";
+  }catch(e){S.genErr=errMsg(e);}
+  busy=false;S.gen=false;render();
+}
+function exemple(){S.quote=JSON.parse(JSON.stringify(EXQ));S.genMode='ex';S.step='devis';S.genErr=null;
+  S.say="Devis d'exemple, pour que la démo continue sans accroc.";render();}
+
+/* ---------------- rendu : artisan ---------------- */
+function proBrief(){
+  return `<div class="phhead"><div style="flex-grow:1"><div class="nm">SIGNÉ</div><div class="sb">${esc(P.societe)} · ${esc(P.ville)}</div></div><div class="av">${esc(ini())}</div></div>
+  <div class="scroll"><div class="ph">
+    <h2 class="t">Nouveau devis</h2><p class="s">Décrivez le client et le chantier à voix haute, comme au téléphone.</p>
+    <div class="stack" style="margin:14px 0 12px">
+      <button class="pbtn${S.rec?' rec':''}" data-a="mic" type="button" ${busy?'disabled':''}>
+        ${S.rec?ICO.stop+' J’ai fini':ICO.mic+(S.brief.trim()?' Reprendre la dictée':' Parler')}</button>
+    </div>
+    ${S.rec?`<div class="recbar"><span class="blink"></span>Enregistrement <span id="rectime" style="font-variant-numeric:tabular-nums">00:00</span></div>`:''}
+    ${S.micMsg?`<div class="ask" style="margin-bottom:12px">${ICO.q}<div>${esc(S.micMsg)}</div></div>`:''}
+    <div class="lab" style="margin:14px 0 7px">Ce qui a été entendu</div>
+    <textarea id="brief" class="${S.rec?'live':''}" aria-label="Description du chantier" placeholder="Parlez, ou écrivez directement ici…">${esc(S.brief)}</textarea>
+    ${S.brief.trim()?'':`<div class="exch">${EXEMPLES.map((x,i)=>`<button class="ex" data-a="ex" data-v="${i}" type="button">Exemple ${esc(x.n.toLowerCase())}</button>`).join('')}</div>`}
+    ${S.genErr?`<div class="ask" style="margin-top:12px;background:#F7E3DE;border-color:#E6C2B8;color:#6B2E17">${ICO.q}<div>${esc(S.genErr)}</div></div>`:''}
+    <div class="stack" style="margin-top:14px">
+      <button class="pbtn dark" data-a="gen" type="button" ${busy||S.rec||!S.brief.trim()?'disabled':''}>
+        ${S.gen?'<span class="pulse">Claude rédige le devis…</span>':'Générer le devis'}</button>
+      ${S.genErr?'<button class="pbtn out sm" data-a="exq" type="button">Afficher un devis d’exemple</button>':''}
+    </div>
+    <div class="note" style="margin-top:12px">Le métier est déduit de ce que vous dites. Aucun secteur n'est imposé.</div>
+  </div></div>`;
+}
+function proDevis(){
+  const q=S.quote,x=totals(q);
+  return `<div class="phhead"><button class="av" data-a="retour" type="button" aria-label="Retour" style="background:transparent;color:var(--ink);border:0">${ICO.back}</button>
+    <div style="flex-grow:1"><div style="font-family:var(--disp);font-weight:700;font-size:15px">Devis généré</div>${q.metier?`<div class="sb">${esc(q.metier)}</div>`:''}</div>
+    <span class="badge ${S.genMode==='ia'?'b-green':'b-grey'}">${S.genMode==='ia'?'Rédigé par l’IA':'Exemple'}</span></div>
+  <div class="scroll"><div class="ph" style="padding-top:6px">
+    ${q.question?`<div class="ask" style="margin-bottom:12px">${ICO.q}<div>${esc(q.question)}</div></div>`:''}
+    <div class="cardw">
+      <div class="row" style="padding-bottom:12px;border-bottom:1px solid var(--rule2);align-items:flex-start">
+        <div class="g"><div style="font-weight:600;font-size:14px">${esc(q.client.nom)}</div><div style="font-size:12px;color:var(--ink2);margin-top:2px">${esc(q.client.adresse)}</div></div>
+        <div style="text-align:right"><div class="lab">N° ${esc(S.num)}</div><div style="font-size:12px;color:var(--ink2);margin-top:3px">Valable 30 j</div></div></div>
+      <div class="stack" style="gap:11px;padding:13px 0">
+        ${q.lignes.map(l=>`<div class="row"><div class="g"><div style="font-size:13.5px;font-weight:500;line-height:1.35">${esc(l.designation)}</div><div style="font-size:11.5px;color:var(--ink2);margin-top:2px">${esc(l.detail?l.detail+' · ':'')}${l.quantite} ${esc(l.unite)} × ${eur(l.pu)}</div></div><div class="num" style="font-size:13.5px">${eur(l.quantite*l.pu)}</div></div>`).join('')}</div>
+      <div class="stack" style="border-top:1px solid var(--rule2);padding-top:12px;gap:7px">
+        <div class="row" style="justify-content:space-between;font-size:12.5px;color:var(--ink2)"><span class="g">Total HT</span><span class="num" style="font-weight:400">${eur(x.ht)}</span></div>
+        <div class="row" style="justify-content:space-between;font-size:12.5px;color:var(--ink2)"><span class="g">TVA ${String(q.tva).replace('.',',')} %</span><span class="num" style="font-weight:400">${eur(x.tv)}</span></div>
+        <div class="row" style="justify-content:space-between;margin-top:4px"><span class="g" style="font-family:var(--disp);font-weight:700;font-size:14px">Total TTC</span><span class="num" style="font-size:21px;font-weight:700">${eur(x.ttc)}</span></div></div></div>
+    <div class="stack" style="margin-top:14px">
+      <button class="pbtn" data-a="send" type="button">Envoyer à ${esc(nomCourt())}</button>
+      <button class="pbtn out sm" data-a="retour" type="button">Reprendre la dictée</button></div>
+  </div></div>`;
+}
+function proSuivi(){
+  const q=S.quote,x=totals(q);
+  const col={envoi:'var(--brick)',relance:'var(--amber)',vu:'#fff',accept:'var(--green)',refus:'var(--slate)'};
+  const ev=S.events.map((e,i)=>{const last=i===S.events.length-1;
+    return `<div class="tl"><div class="tlc"><div class="tld" style="background:${col[e.kind]};${e.kind==='vu'?'border:2px solid #C7C0B4':''}"></div>${last?'':'<div class="tll"></div>'}</div>
+     <div class="tlb"${last?' style="padding-bottom:0"':''}><div class="tlt">${fmtDT(e.at)}</div><div class="tlh"${e.kind==='accept'?' style="color:var(--green)"':''}>${esc(e.h)}</div>${e.s?`<div class="tls">${esc(e.s)}</div>`:''}</div></div>`;}).join('');
+  const nx=S.plan[S.relances];
+  const st=S.status==='accepte'?['b-green','Accepté']:S.status==='refuse'?['b-grey','Refusé']:S.relances?['b-amber',`Relance ${S.relances} / 4`]:['b-grey','Envoyé'];
+  return `<div class="phhead"><div style="flex-grow:1"><div style="font-family:var(--disp);font-weight:700;font-size:15px">Devis n° ${esc(S.num)}</div><div class="sb">${esc(q.client.nom)}</div></div><span class="badge ${st[0]}">${st[1]}</span></div>
+  <div class="scroll"><div class="ph" style="padding-top:4px">
+    ${S.status==='accepte'
+      ?`<div class="fade" style="background:var(--green);border-radius:16px;padding:16px;color:#fff;margin-bottom:14px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--greent)">Signé le ${fmtL(S.acceptedAt)}</div><div style="font-family:var(--disp);font-weight:700;font-size:28px;margin-top:3px">${eur(x.ttc)}</div><div style="font-size:12.5px;color:#D5E4DB;margin-top:3px">${S.relances?`après ${S.relances} relance${S.relances>1?'s':''} automatique${S.relances>1?'s':''}`:'sans relance'}</div></div>`
+      :`<div class="cardw" style="margin-bottom:14px"><div class="row"><div class="g"><div class="lab">Montant</div><div style="font-family:var(--disp);font-weight:700;font-size:24px;margin-top:3px">${eur(x.ttc)}</div></div>
+        <div style="text-align:right"><div class="lab">Prochaine relance</div><div style="font-size:13px;font-weight:600;margin-top:5px">${nx?esc(fmtD(nx)+' · 9h00'):'—'}</div>${nx&&nx.getDay()===1&&S.relances>0?'<div style="font-size:11px;color:var(--ambeti);margin-top:3px">décalée du week-end</div>':''}</div></div>
+        ${S.closed?'<div class="badge b-grey" style="margin-top:12px">Dossier clôturé, à appeler</div>':''}</div>`}
+    <div class="lab" style="margin-bottom:11px">Historique</div>${ev}
+  </div></div>`;
+}
+function renderPro(){
+  const host=document.getElementById('pro');
+  host.innerHTML=S.step==='brief'?proBrief():S.step==='devis'?proDevis():proSuivi();
+  const ta=document.getElementById('brief');
+  if(ta){ta.value=S.brief;
+    ta.addEventListener('input',()=>{const was=!!S.brief.trim();S.brief=ta.value;
+      if(was!==!!S.brief.trim()){const p=ta.selectionStart;renderPro();const t2=document.getElementById('brief');if(t2){t2.focus();try{t2.setSelectionRange(p,p);}catch(e){}}}});}
+}
+
+/* ---------------- rendu : client ---------------- */
+function cliInbox(){
+  if(!S.inbox.length)return`<div class="phhead" style="border-bottom:1px solid var(--rule2)"><div style="flex-grow:1;font-family:var(--disp);font-weight:700;font-size:15px">Messages</div></div>
+   <div class="scroll"><div class="empty">${ICO.inbox}<div style="font-size:13.5px">Rien pour l'instant.<br>Le client attend son devis.</div></div></div>`;
+  const nu=S.inbox.filter(m=>!m.read).length;
+  return `<div class="phhead" style="border-bottom:1px solid var(--rule2)"><div style="flex-grow:1;font-family:var(--disp);font-weight:700;font-size:15px">Messages</div>${nu?`<span class="badge b-grey">${nu} non lu${nu>1?'s':''}</span>`:''}</div>
+  <div class="scroll"><div class="ph"><div class="stack" style="gap:9px">
+  ${S.inbox.map((m,i)=>`<button class="msg${m.read?'':' unread'}${i===0?' fade':''}" data-a="open" data-v="${m.id}" type="button">
+    <span class="mi" style="background:${m.type==='sms'?'var(--greens)':'var(--bricks)'};color:${m.type==='sms'?'var(--green)':'var(--brickd)'}">${m.type==='sms'?ICO.sms:ICO.mail}</span>
+    <span style="flex-grow:1;min-width:0">
+      <span style="display:flex;align-items:baseline;gap:8px"><span style="font-size:13px;font-weight:${m.read?'500':'700'}">${esc(m.type==='sms'?P.societe:P.prenom+' '+P.nom)}</span><span style="margin-left:auto;font-size:11px;color:var(--ink2);white-space:nowrap">${esc(fmtD(m.at))}</span></span>
+      <span style="display:block;font-size:12.5px;font-weight:${m.read?'400':'600'};margin-top:3px;line-height:1.35">${esc(m.type==='sms'?m.body.slice(0,58)+'…':m.subject)}</span>
+    </span></button>`).join('')}</div></div></div>`;
+}
+function cliMessage(){
+  const m=S.inbox.find(x=>x.id===S.open);if(!m)return cliInbox();
+  const x=totals(S.quote);
+  return `<div class="phhead" style="border-bottom:1px solid var(--rule2)"><button class="av" data-a="inbox" type="button" aria-label="Retour" style="background:transparent;color:var(--ink);border:0">${ICO.back}</button><div style="flex-grow:1;font-size:13px;color:var(--ink2)">${esc(m.type==='sms'?'SMS':'Email')} · ${esc(fmtDT(m.at))}</div></div>
+  <div class="scroll"><div class="ph">
+  ${m.type==='sms'
+    ?`<div style="background:var(--greens);border-radius:16px 16px 16px 4px;padding:14px;font-size:14px;line-height:1.6;color:#234433">${esc(m.body)}</div>`
+    :`<h2 class="t" style="font-size:17px">${esc(m.subject)}</h2>
+      <div style="display:flex;align-items:center;gap:10px;margin:12px 0 16px;padding-bottom:14px;border-bottom:1px solid var(--rule2)"><div class="av">${esc(ini())}</div><div><div style="font-size:13px;font-weight:600">${esc(P.prenom)} ${esc(P.nom)}</div><div style="font-size:11.5px;color:var(--ink2)">${esc(P.societe)}</div></div></div>
+      <div style="font-size:14px;line-height:1.65;white-space:pre-line">${esc(m.body)}</div>`}
+  ${m.devis&&S.status!=='accepte'&&S.status!=='refuse'?`<button class="pbtn" style="margin-top:18px" data-a="quote" type="button">Voir le devis — ${eur(x.ttc)}</button>`:''}
+  <div class="note" style="margin-top:16px">${esc(m.type==='sms'?'Envoyé automatiquement par SIGNÉ.':'Rédigé automatiquement · une réponse arrête toute la séquence.')}</div>
+  </div></div>`;
+}
+function cliDevis(){
+  const q=S.quote,x=totals(q);
+  return `<div class="phhead" style="background:var(--ink);color:#fff;padding:12px 18px"><button data-a="inbox" type="button" aria-label="Retour" style="background:transparent;border:0;color:#fff;padding:0;display:flex">${ICO.back}</button><div style="flex-grow:1;font-family:var(--disp);font-weight:800;font-size:14px;letter-spacing:.04em">${esc(P.societe.toUpperCase())}</div></div>
+  <div class="scroll"><div class="ph" style="background:#fff">
+    <h2 class="t">Votre devis n° ${esc(S.num)}</h2>
+    <p class="s">${esc(q.objet)} · valable jusqu'au ${fmtL(validite())}</p>
+    <div style="background:var(--paper);border-radius:15px;padding:15px;margin:14px 0;display:flex;align-items:baseline;gap:10px">
+      <div style="flex-grow:1;font-size:12.5px;color:var(--ink2)">Montant total TTC<br><span style="font-size:11px">dont TVA ${String(q.tva).replace('.',',')} % : ${eur(x.tv)}</span></div>
+      <div class="num" style="font-size:25px;font-weight:700">${eur(x.ttc)}</div></div>
+    <div class="stack" style="gap:8px;margin-bottom:16px">
+      ${q.lignes.map(l=>`<div class="row"><div class="g" style="font-size:13px">${esc(l.designation)}</div><div class="num" style="font-size:13px">${eur(l.quantite*l.pu)}</div></div>`).join('')}</div>
+    <div class="stack">
+      <button class="pbtn green" data-a="accept" type="button">${ICO.chk} J'accepte ce devis</button>
+      <button class="pbtn out sm" data-a="inbox" type="button">J'ai une question</button>
+      <button class="pbtn out sm" data-a="refuse" type="button" style="border-color:transparent;color:var(--ink2)">Je ne donne pas suite</button></div>
+    <p style="font-size:10px;line-height:1.6;color:var(--ink2);margin:16px 0 0">${esc(P.societe)} · SIRET ${esc(P.siret)}. Assurance décennale ${esc(P.deca)}, France métropolitaine. Médiateur de la consommation : CNPM, 27 av. de la Libération, 42400 Saint-Chamond. Droit de rétractation de 14 jours en cas de signature à domicile.</p>
+  </div></div>`;
+}
+function cliFin(ok){
+  const x=totals(S.quote);
+  return `<div class="scroll"><div class="empty fade" style="background:#fff">
+    <div style="width:62px;height:62px;border-radius:50%;background:${ok?'var(--green)':'var(--rule2)'};display:flex;align-items:center;justify-content:center;color:${ok?'#fff':'var(--ink2)'}">${ok?ICO.chk:'<span style="font-size:22px">—</span>'}</div>
+    <h2 class="t" style="margin-top:4px">${ok?'Devis accepté':'Réponse envoyée'}</h2>
+    <p class="s">${ok?`Merci. ${esc(P.prenom)} est prévenu, il vous recontacte pour fixer la date.<br><br><b style="font-weight:600">${eur(x.ttc)}</b> · signé le ${fmtL(S.acceptedAt||S.now)}`:'L’artisan est prévenu. Vous ne recevrez plus de rappel.'}</p>
+    <button class="pbtn out sm" data-a="inbox" type="button" style="width:auto;padding:0 20px;margin-top:6px">Retour aux messages</button></div></div>`;
+}
+function renderCli(){
+  document.getElementById('cli').innerHTML=
+    S.cview==='message'?cliMessage():S.cview==='devis'?cliDevis():
+    S.cview==='accepte'?cliFin(true):S.cview==='refuse'?cliFin(false):cliInbox();
+}
+
+/* ---------------- rails ---------------- */
+const prev={};
+function animate(id,val,fmt){
+  const el=document.getElementById(id),from=prev[id]==null?val:prev[id];prev[id]=val;
+  if(from===val||window.matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent=fmt(val);return;}
+  const t0=performance.now();
+  const f=t=>{const k=Math.min(1,(t-t0)/650),e=1-Math.pow(1-k,3);
+    el.textContent=fmt(from+(val-from)*e);if(k<1)requestAnimationFrame(f);};
+  requestAnimationFrame(f);
+}
+function renderRails(){
+  const cur=S.step==='brief'?0:S.step==='devis'?1:(S.status==='accepte'||S.status==='refuse')?3:S.relances?2:1;
+  document.getElementById('steps').innerHTML=['Dicter','Envoyer','Relancer','Signer']
+    .map((l,i)=>`<span class="step${i===cur?' on':''}${i<cur?' done':''}"><b>${i<cur?'✓':i+1}</b>${l}</span>`).join('');
+  document.getElementById('clock').textContent=fmtDT(S.now);
+  const f=document.getElementById('fwd'),ft=document.getElementById('fwdTxt');
+  f.disabled=!(S.sentAt&&S.status!=='accepte'&&S.status!=='refuse'&&!S.closed);
+  const nx=S.plan[S.relances];
+  ft.textContent=!S.sentAt?'Avancer le temps':(S.status==='accepte'||S.status==='refuse')?'Terminé':nx?`Avancer au ${fmtD(nx)}`:'Clôturer le dossier';
+  animate('k1',S.kpi.recup,v=>eur0(v));animate('k2',S.kpi.attente,v=>eur0(v));animate('k3',S.kpi.taux,v=>Math.round(v)+' %');
+  document.getElementById('say').textContent=S.say;
+}
+function render(){renderRails();renderPro();renderCli();}
+
+/* ---------------- branchements ---------------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;
+  const a=b.dataset.a,v=b.dataset.v;
+  if(a==='mic')startRec();
+  else if(a==='ex'){S.brief=EXEMPLES[Number(v)].t;S.micMsg=null;S.say="Exemple chargé. En vrai, ce texte vient de votre voix.";render();}
+  else if(a==='gen')generate();
+  else if(a==='exq')exemple();
+  else if(a==='retour'){S.step='brief';S.say="Rien n'est envoyé tant qu'il n'a pas validé.";render();}
+  else if(a==='send')send();
+  else if(a==='open')openMsg(Number(v));
+  else if(a==='inbox'){S.cview='inbox';render();}
+  else if(a==='quote')viewQuote();
+  else if(a==='accept')accept();
+  else if(a==='refuse')refuse();
+});
+document.getElementById('fwd').addEventListener('click',advance);
+document.getElementById('reset').addEventListener('click',start);
+document.getElementById('memoBtn').addEventListener('click',()=>document.getElementById('memo').classList.toggle('hide'));
+document.getElementById('profBtn').addEventListener('click',()=>document.getElementById('prof').classList.toggle('hide'));
+document.getElementById('aiChip').addEventListener('click',probeAI);
+Array.prototype.forEach.call(document.querySelectorAll('#prof input'),inp=>{
+  inp.value=P[inp.dataset.p]||'';
+  inp.addEventListener('input',()=>{P[inp.dataset.p]=inp.value;saveP();render();});
+});
+
+start();
+idleAI();
+if(HOSTED)useSample.then(s=>{if(!s)setAI('off','IA indisponible');});
+(function(){const f=document.getElementById('fkey');f.value=KEY;
+  f.addEventListener('input',()=>{KEY=f.value.trim();saveK();idleAI();});})();
+})();
+</script>
