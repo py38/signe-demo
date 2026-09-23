@@ -126,6 +126,13 @@ textarea.live{border-color:var(--brick);background:#fff}
 .say{margin-left:auto;max-width:520px;font-size:12.5px;line-height:1.5;color:var(--smuted);text-align:right}
 .say b{color:var(--sink);font-weight:600}
 .hide{display:none!important}
+#print{display:none}
+@media print{
+  @page{size:A4;margin:15mm}
+  .app{display:none!important}
+  body{background:#fff!important}
+  #print{display:block}
+}
 @media (max-width:900px){
   .stage{flex-direction:column;align-items:center;gap:22px;justify-content:flex-start}
   .phone{height:720px}
@@ -161,6 +168,9 @@ textarea.live{border-color:var(--brick);background:#fff}
       <div class="fld"><label for="f3">Entreprise</label><input id="f3" data-p="societe" autocomplete="off"></div>
       <div class="fld"><label for="f4">Ville</label><input id="f4" data-p="ville" autocomplete="off"></div>
       <div class="fld"><label for="f5">Téléphone</label><input id="f5" data-p="tel" autocomplete="off"></div>
+      <div class="fld" style="min-width:230px"><label for="f6">Adresse de l'entreprise</label><input id="f6" data-p="adresse" autocomplete="off"></div>
+      <div class="fld"><label for="f7">SIRET</label><input id="f7" data-p="siret" autocomplete="off"></div>
+      <div class="fld" style="min-width:210px"><label for="f8">Assurance décennale</label><input id="f8" data-p="deca" autocomplete="off"></div>
       <div class="fld" style="min-width:250px"><label for="fkey">Clé API Anthropic</label><input id="fkey" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false"></div>
     </div>
     <div style="margin-top:10px;font-size:12px;color:#6B7280">La clé reste dans ce navigateur, sur cet ordinateur. Elle n'est ni envoyée sur GitHub, ni visible par qui ouvre la page.</div>
@@ -196,6 +206,7 @@ textarea.live{border-color:var(--brick);background:#fff}
   </div>
 
 </div>
+<div id="print"></div>
 
 <script>
 (function(){
@@ -203,6 +214,7 @@ textarea.live{border-color:var(--brick);background:#fff}
 
 /* ---------------- profil (modifiable, mémorisé) ---------------- */
 const DEF={prenom:'Karim',nom:'Belaïd',societe:'Belaïd Rénovation',ville:'Tours',tel:'06 12 44 87 30',
+           adresse:'8 rue Bernard Palissy, 37000 Tours',
            siret:'812 447 920 00018',deca:'AXA n° 4412 890 33'};
 let P=Object.assign({},DEF);
 try{const r=localStorage.getItem('signe.profil');if(r)P=Object.assign({},DEF,JSON.parse(r));}catch(e){}
@@ -251,8 +263,25 @@ const ICO={
 /* ---------------- état ---------------- */
 const BASE={recup:18400,attente:21200,taux:42};
 let S,uid=0,busy=false;
-function start(){
+const KEYS='signe.state';
+function save(){try{localStorage.setItem(KEYS,JSON.stringify(S));}catch(e){}}
+function load(){
+  try{
+    const r=localStorage.getItem(KEYS); if(!r)return null;
+    const o=JSON.parse(r), D=v=>v?new Date(v):null;
+    o.now=D(o.now);o.sentAt=D(o.sentAt);o.acceptedAt=D(o.acceptedAt);
+    o.plan=(o.plan||[]).map(v=>new Date(v));
+    (o.events||[]).forEach(e=>e.at=D(e.at));
+    (o.inbox||[]).forEach(m=>m.at=D(m.at));
+    o.rec=false;o.gen=false;o.micMsg=null;o.genErr=null;
+    return o.now?o:null;
+  }catch(e){return null;}
+}
+function start(fresh){
   stopRec(true);
+  if(!fresh){const o=load();
+    if(o){S=o;uid=(S.inbox||[]).reduce((a,m)=>Math.max(a,m.id||0),0);render();return;}}
+  try{localStorage.removeItem(KEYS);}catch(e){}
   const now=new Date(); now.setHours(9,12,0,0);
   S={step:'brief',brief:'',rec:false,recT:0,micMsg:null,gen:false,genErr:null,
      now,quote:null,num:'2026-0'+(140+Math.floor(Math.random()*9)),
@@ -503,6 +532,72 @@ async function generate(){
 function exemple(){S.quote=JSON.parse(JSON.stringify(EXQ));S.genMode='ex';S.step='devis';S.genErr=null;
   S.say="Devis d'exemple, pour que la démo continue sans accroc.";render();}
 
+/* ---------------- PDF imprimable ---------------- */
+function printDevis(){
+  if(!S.quote)return;
+  const q=S.quote,x=totals(q),d=S.sentAt||S.now;
+  const cell='padding:7px 0;border-bottom:1px solid #DDD8CF;vertical-align:top';
+  document.getElementById('print').innerHTML=`
+  <div style="font-family:'Instrument Sans',Helvetica,sans-serif;color:#181513;font-size:10.5pt;line-height:1.5">
+    <div style="display:flex;gap:24px;align-items:flex-start;padding-bottom:14px;border-bottom:2px solid #181513">
+      <div style="flex-grow:1">
+        <div style="font-family:'Bricolage Grotesque',Helvetica,sans-serif;font-weight:800;font-size:16pt;letter-spacing:.01em">${esc(P.societe.toUpperCase())}</div>
+        <div style="font-size:9pt;color:#4A443C;line-height:1.55;margin-top:5px">${esc(P.adresse)}<br>SIRET ${esc(P.siret)} · ${esc(P.tel)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Bricolage Grotesque',Helvetica,sans-serif;font-weight:700;font-size:13pt">DEVIS N° ${esc(S.num)}</div>
+        <div style="font-size:9pt;color:#4A443C;line-height:1.55;margin-top:5px">Émis le ${fmtL(d)}<br>Valable jusqu'au ${fmtL(validite())}</div>
+      </div>
+    </div>
+
+    <div style="padding:14px 0 16px;font-size:10pt">
+      <div style="font-size:8pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6E665C;margin-bottom:3px">Client</div>
+      ${esc(q.client.nom)}<br><span style="color:#4A443C">${esc(q.client.adresse)}</span>
+    </div>
+
+    <div style="font-size:8pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6E665C;margin-bottom:6px">Objet — ${esc(q.objet)}</div>
+
+    <table style="width:100%;border-collapse:collapse;font-size:10pt">
+      <thead><tr>
+        <th style="text-align:left;font-size:8pt;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6E665C;padding-bottom:6px;border-bottom:1px solid #181513">Désignation</th>
+        <th style="text-align:right;font-size:8pt;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6E665C;padding:0 0 6px 14px;border-bottom:1px solid #181513;width:58px">Qté</th>
+        <th style="text-align:right;font-size:8pt;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6E665C;padding:0 0 6px 14px;border-bottom:1px solid #181513;width:82px">PU HT</th>
+        <th style="text-align:right;font-size:8pt;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6E665C;padding:0 0 6px 14px;border-bottom:1px solid #181513;width:88px">Total HT</th>
+      </tr></thead>
+      <tbody>${q.lignes.map(l=>`<tr>
+        <td style="${cell}">${esc(l.designation)}${l.detail?`<br><span style="font-size:8.5pt;color:#6E665C">${esc(l.detail)}</span>`:''}</td>
+        <td style="${cell};text-align:right;padding-left:14px;white-space:nowrap">${l.quantite} ${esc(l.unite)}</td>
+        <td style="${cell};text-align:right;padding-left:14px;white-space:nowrap">${eur(l.pu)}</td>
+        <td style="${cell};text-align:right;padding-left:14px;white-space:nowrap;font-weight:600">${eur(l.quantite*l.pu)}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+
+    <div style="display:flex;justify-content:flex-end;padding-top:12px">
+      <div style="width:240px">
+        <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:10pt"><span>Total HT</span><span>${eur(x.ht)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:10pt"><span>TVA ${String(q.tva).replace('.',',')} %</span><span>${eur(x.tv)}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #181513;margin-top:5px;padding-top:7px">
+          <span style="font-family:'Bricolage Grotesque',Helvetica,sans-serif;font-weight:700;font-size:11pt">Total TTC</span>
+          <span style="font-family:'Bricolage Grotesque',Helvetica,sans-serif;font-weight:700;font-size:15pt">${eur(x.ttc)}</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:26px;border:1px solid #181513;padding:14px 16px 34px;page-break-inside:avoid">
+      <div style="font-size:9.5pt;font-weight:600">Bon pour accord</div>
+      <div style="font-size:8.5pt;color:#4A443C;margin-top:3px">Date, signature du client précédée de la mention manuscrite « Lu et approuvé, bon pour accord ».</div>
+    </div>
+
+    <div style="margin-top:20px;padding-top:12px;border-top:1px solid #DDD8CF;font-size:7.5pt;line-height:1.6;color:#4A443C">
+      Assurance décennale ${esc(P.deca)}, couverture France métropolitaine. Devis gratuit, valable 30 jours à compter de son émission. Acompte de 30 % à la commande, solde à la réception des travaux. Médiateur de la consommation : CNPM, 27 av. de la Libération, 42400 Saint-Chamond. En cas de contrat conclu hors établissement, le client dispose d'un délai de rétractation de 14 jours à compter de la signature (art. L221-18 du Code de la consommation).
+    </div>
+  </div>`;
+  const t=document.title;
+  document.title=`Devis ${S.num} — ${q.client.nom}`;
+  window.print();
+  setTimeout(()=>{document.title=t;},400);
+}
+
 /* ---------------- rendu : artisan ---------------- */
 function proBrief(){
   return `<div class="phhead"><div style="flex-grow:1"><div class="nm">SIGNÉ</div><div class="sb">${esc(P.societe)} · ${esc(P.ville)}</div></div><div class="av">${esc(ini())}</div></div>
@@ -545,6 +640,7 @@ function proDevis(){
         <div class="row" style="justify-content:space-between;margin-top:4px"><span class="g" style="font-family:var(--disp);font-weight:700;font-size:14px">Total TTC</span><span class="num" style="font-size:21px;font-weight:700">${eur(x.ttc)}</span></div></div></div>
     <div class="stack" style="margin-top:14px">
       <button class="pbtn" data-a="send" type="button">Envoyer à ${esc(nomCourt())}</button>
+      <button class="pbtn out sm" data-a="pdf" type="button">Télécharger le PDF</button>
       <button class="pbtn out sm" data-a="retour" type="button">Reprendre la dictée</button></div>
   </div></div>`;
 }
@@ -564,6 +660,7 @@ function proSuivi(){
         <div style="text-align:right"><div class="lab">Prochaine relance</div><div style="font-size:13px;font-weight:600;margin-top:5px">${nx?esc(fmtD(nx)+' · 9h00'):'—'}</div>${nx&&nx.getDay()===1&&S.relances>0?'<div style="font-size:11px;color:var(--ambeti);margin-top:3px">décalée du week-end</div>':''}</div></div>
         ${S.closed?'<div class="badge b-grey" style="margin-top:12px">Dossier clôturé, à appeler</div>':''}</div>`}
     <div class="lab" style="margin-bottom:11px">Historique</div>${ev}
+    <button class="pbtn out sm" data-a="pdf" type="button" style="margin-top:16px">Télécharger le PDF</button>
   </div></div>`;
 }
 function renderPro(){
@@ -657,7 +754,7 @@ function renderRails(){
   animate('k1',S.kpi.recup,v=>eur0(v));animate('k2',S.kpi.attente,v=>eur0(v));animate('k3',S.kpi.taux,v=>Math.round(v)+' %');
   document.getElementById('say').textContent=S.say;
 }
-function render(){renderRails();renderPro();renderCli();}
+function render(){renderRails();renderPro();renderCli();save();}
 
 /* ---------------- branchements ---------------- */
 document.addEventListener('click',e=>{
@@ -668,6 +765,7 @@ document.addEventListener('click',e=>{
   else if(a==='gen')generate();
   else if(a==='exq')exemple();
   else if(a==='retour'){S.step='brief';S.say="Rien n'est envoyé tant qu'il n'a pas validé.";render();}
+  else if(a==='pdf')printDevis();
   else if(a==='send')send();
   else if(a==='open')openMsg(Number(v));
   else if(a==='inbox'){S.cview='inbox';render();}
@@ -676,16 +774,16 @@ document.addEventListener('click',e=>{
   else if(a==='refuse')refuse();
 });
 document.getElementById('fwd').addEventListener('click',advance);
-document.getElementById('reset').addEventListener('click',start);
+document.getElementById('reset').addEventListener('click',()=>start(true));
 document.getElementById('memoBtn').addEventListener('click',()=>document.getElementById('memo').classList.toggle('hide'));
 document.getElementById('profBtn').addEventListener('click',()=>document.getElementById('prof').classList.toggle('hide'));
 document.getElementById('aiChip').addEventListener('click',probeAI);
-Array.prototype.forEach.call(document.querySelectorAll('#prof input'),inp=>{
+Array.prototype.forEach.call(document.querySelectorAll('#prof input[data-p]'),inp=>{
   inp.value=P[inp.dataset.p]||'';
   inp.addEventListener('input',()=>{P[inp.dataset.p]=inp.value;saveP();render();});
 });
 
-start();
+start(false);
 idleAI();
 if(HOSTED)useSample.then(s=>{if(!s)setAI('off','IA indisponible');});
 (function(){const f=document.getElementById('fkey');f.value=KEY;
